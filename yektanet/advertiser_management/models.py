@@ -33,3 +33,17 @@ class Ad(models.Model):
         t = Ad.objects.get(id=ad_id)
         t.views += 1  # change field
         t.save()  # this will update only
+
+
+class Clicks(models.Model):
+    id = models.AutoField(primary_key=True)
+    ad = models.ForeignKey(Ad, on_delete=models.CASCADE)
+    clicked_date = models.DateTimeField()
+    user_ip = models.CharField(max_length=15)
+
+
+class Views(models.Model):
+    id = models.AutoField(primary_key=True)
+    ad = models.ForeignKey(Ad, on_delete=models.CASCADE)
+    viewed_date = models.DateTimeField()
+    user_ip = models.CharField(max_length=15)
