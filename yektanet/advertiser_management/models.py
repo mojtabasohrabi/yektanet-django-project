@@ -23,3 +23,13 @@ class Ad(models.Model):
         ad = Ad.objects.get(id=ad_id)
         link = ad.link
         return link
+
+    def inc_clicks(ad_id):
+        t = Ad.objects.get(id=ad_id)
+        t.clicks += 1  # change field
+        t.save()  # this will update only
+
+    def inc_views(ad_id):
+        t = Ad.objects.get(id=ad_id)
+        t.views += 1  # change field
+        t.save()  # this will update only
