@@ -9,24 +9,26 @@
 <body>
 <div class="container" dir="rtl">
     {% for advertiser in advertisers %}
-        <div class="card mt-2 p-2">
-            <h5 class="card-title">{{ advertiser.name }}</h5>
-            <div class="card-body">
-                <div class="row">
-		    {% for ad in advertiser.ads %}
-		        <div class="card col-md-2 p-0 mx-2">
-		            <a href="/click/{{ ad.id }}/">
-		                <img src="{{ ad.image }}"
-		                     class="card-img-top">
-		                <div class="card-body">
-		                    <span>{{ ad.title }}</span>
-		                </div>
-		            </a>
-		        </div>
-		    {% endfor %}
+    <div class="card mt-2 p-2">
+        <h5 class="card-title">{{ advertiser.name }}</h5>
+        <div class="card-body">
+            <div class="row">
+                {% for ad in ads %}
+                {% if ad.advertiser == advertiser.id %}
+                <div class="card col-md-2 p-0 mx-2">
+                    <a href="/click/{{ ad.id }}/">
+                        <img src="{{ ad.image }}"
+                             class="card-img-top">
+                        <div class="card-body">
+                            <span>{{ ad.title }}</span>
+                        </div>
+                    </a>
                 </div>
+                {% endif %}
+                {% endfor %}
             </div>
         </div>
+    </div>
     {% endfor %}
 </div>
 </body>
