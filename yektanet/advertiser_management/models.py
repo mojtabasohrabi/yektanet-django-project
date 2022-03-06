@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 
 class Advertiser(models.Model):
@@ -22,16 +23,6 @@ class Ad(models.Model):
         link = ad.link
         return link
 
-    def inc_clicks(ad_id):
-        t = Ad.objects.get(id=ad_id)
-        t.clicks += 1  # change field
-        t.save()  # this will update only
-
-    def inc_views(ad_id):
-        t = Ad.objects.get(id=ad_id)
-        t.views += 1  # change field
-        t.save()  # this will update only
-
 
 class Clicks(models.Model):
     id = models.AutoField(primary_key=True)
@@ -39,9 +30,19 @@ class Clicks(models.Model):
     clicked_date = models.DateTimeField()
     user_ip = models.CharField(max_length=15)
 
+    def insert_click(ad_id):
+        ad = Ad.objects.get(id=ad_id)
+        data_to_insert = Clicks(ad=ad, clicked_date=timezone.now(), user_ip='')
+        data_to_insert.save(force_insert=True)
+
 
 class Views(models.Model):
     id = models.AutoField(primary_key=True)
     ad = models.ForeignKey(Ad, on_delete=models.CASCADE)
     viewed_date = models.DateTimeField()
     user_ip = models.CharField(max_length=15)
+
+    def insert_view(ad_id):
+        ad = Ad.objects.get(id=ad_id)
+        data_to_insert = Views(ad=ad, clicked_date=timezone.now(), user_ip='')
+        data_to_insert.save(force_insert=True)
