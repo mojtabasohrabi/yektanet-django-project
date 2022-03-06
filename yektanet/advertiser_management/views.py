@@ -27,7 +27,7 @@ def ads_show(request):
 
 def create_ad_show(request):
     if request.method == 'POST':
-        form = CrateAdForm(request.POST)
+        form = CrateAdForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
             return HttpResponseRedirect('/ads/')
