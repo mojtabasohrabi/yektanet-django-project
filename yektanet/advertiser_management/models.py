@@ -14,8 +14,6 @@ class Ad(models.Model):
     title = models.CharField(max_length=200)
     image = models.ImageField(default='')
     link = models.TextField()
-    clicks = models.PositiveIntegerField(default=0)
-    views = models.PositiveIntegerField(default=0)
     approve = models.BooleanField(default=False)
 
     @staticmethod
