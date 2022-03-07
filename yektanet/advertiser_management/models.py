@@ -35,7 +35,6 @@ class Clicks(models.Model):
         ad = Ad.objects.get(id=ad_id)
         data_to_insert = Clicks(ad=ad, clicked_date=timezone.now(), user_ip='')
         data_to_insert.save(force_insert=True)
-        Clicks.objects.values('ad').annotate(count=Count('*'))
 
 
 class Views(models.Model):
@@ -46,5 +45,5 @@ class Views(models.Model):
 
     def insert_view(ad_id):
         ad = Ad.objects.get(id=ad_id)
-        data_to_insert = Views(ad=ad, clicked_date=timezone.now(), user_ip='')
+        data_to_insert = Views(ad=ad, viewed_date=timezone.now(), user_ip='')
         data_to_insert.save(force_insert=True)

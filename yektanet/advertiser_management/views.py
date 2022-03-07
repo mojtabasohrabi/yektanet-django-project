@@ -1,3 +1,5 @@
+from django.db.models import Count
+from django.db.models.functions import TruncHour
 from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
 from .forms import CrateAdForm
@@ -19,14 +21,14 @@ class AdsShow(TemplateView):
         context = super().get_context_data(**kwargs)
         all_advertisers = Advertiser.objects.values('id', 'name')
         ads_fields = Ad.objects.values('id', 'image', 'advertiser', 'title')
-        all_ads = Views.objects.all()
+        all_ads = Ad.objects.all()
         for ad in all_ads.iterator():
             Views.insert_view(ad.id)
-
         context = {
             'advertisers': all_advertisers,
             'ads': ads_fields,
         }
+
         return context
 
 
@@ -36,8 +38,17 @@ class ReportShow(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        all_ads = Clicks.objects.values('title')
-        context['ads'] = all_ads
+        all_clicks = Clicks.objects.annotate(hour=TruncHour('clicked_date')).values('hour').annotate(
+            click=Count('*')).values('ad', 'hour', 'click').order_by('ad')
+
+        all_views = Views.objects.annotate(hour=TruncHour('viewed_date')).values('hour').annotate(
+            view=Count('*')).values('ad', 'hour', 'view').order_by('ad')
+
+        # all_views = Views.objects.values('ad').annotate(view=Count('*'))
+
+        context['click'] = all_clicks
+        context['view'] = all_views
+
         return context
 
 
