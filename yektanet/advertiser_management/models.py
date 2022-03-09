@@ -31,9 +31,9 @@ class Clicks(models.Model):
     clicked_date = models.DateTimeField()
     user_ip = models.CharField(max_length=15)
 
-    def insert_click(ad_id):
+    def insert_click(ad_id, user_ip):
         ad = Ad.objects.get(id=ad_id)
-        data_to_insert = Clicks(ad=ad, clicked_date=timezone.now(), user_ip='')
+        data_to_insert = Clicks(ad=ad, clicked_date=timezone.now(), user_ip=user_ip)
         data_to_insert.save(force_insert=True)
 
 
@@ -43,7 +43,7 @@ class Views(models.Model):
     viewed_date = models.DateTimeField()
     user_ip = models.CharField(max_length=15)
 
-    def insert_view(ad_id):
+    def insert_view(ad_id, user_ip):
         ad = Ad.objects.get(id=ad_id)
-        data_to_insert = Views(ad=ad, viewed_date=timezone.now(), user_ip='')
+        data_to_insert = Views(ad=ad, viewed_date=timezone.now(), user_ip=user_ip)
         data_to_insert.save(force_insert=True)

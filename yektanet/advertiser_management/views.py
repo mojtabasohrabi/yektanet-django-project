@@ -25,7 +25,7 @@ class AdsShow(TemplateView):
         ads_fields = Ad.objects.values('id', 'image', 'advertiser', 'title')
         all_ads = Ad.objects.all()
         for ad in all_ads.iterator():
-            Views.insert_view(ad.id)
+            Views.insert_view(ad.id, self.request.ip)
         context = {
             'advertisers': all_advertisers,
             'ads': ads_fields,
@@ -43,6 +43,9 @@ class ReportShow(TemplateView):
         all_clicks = Clicks.objects.annotate(hour=TruncHour('clicked_date')).values('hour').annotate(
             click=Count('*')).values('ad', 'hour', 'click').order_by('ad')
 
+        all_clicks2 = Clicks.objects.annotate(hour=TruncHour('clicked_date')).values('hour').annotate(
+            click=Count('*')).values('user_ip').order_by('ad')
+
         all_views = Views.objects.annotate(hour=TruncHour('viewed_date')).values('hour').annotate(
             view=Count('*')).values('ad', 'hour', 'view').order_by('ad')
 
@@ -56,6 +59,7 @@ class ReportShow(TemplateView):
                         ctr[readable_data] = j['click'] / i['view']
                         ctr_per_ad[i['ad']] = ctr
 
+        context['click2'] = all_clicks2
         context['click'] = all_clicks
         context['view'] = all_views
         context['ctr_per_ad'] = ctr_per_ad
@@ -76,5 +80,5 @@ def create_ad_show(request):
 
 
 def click_show(request, id):
-    Clicks.insert_click(id)
+    Clicks.insert_click(id, request.ip)
     return redirect(Ad.get_link(id))
