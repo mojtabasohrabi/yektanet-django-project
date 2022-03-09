@@ -1,3 +1,4 @@
+import random
 from django.db.models import Count
 from django.db.models.functions import TruncHour, TruncMinute
 from django.shortcuts import render, redirect
@@ -7,8 +8,8 @@ from django.shortcuts import redirect
 from .models import Ad, Advertiser, Clicks, Views
 from datetime import datetime
 
-
 from django.views.generic.base import TemplateView
+from django.db.models import Avg
 
 
 def redirect_view(url):
@@ -41,13 +42,21 @@ class ReportShow(TemplateView):
         context = super().get_context_data(**kwargs)
 
         all_clicks = Clicks.objects.annotate(hour=TruncHour('clicked_date')).values('hour').annotate(
-            click=Count('*')).values('ad', 'hour', 'click').order_by('ad')
-
-        all_clicks2 = Clicks.objects.annotate(hour=TruncHour('clicked_date')).values('hour').annotate(
-            click=Count('*')).values('user_ip').order_by('ad')
+            click=Count('*')).values('ad', 'hour', 'click', 'user_ip').order_by('ad')
 
         all_views = Views.objects.annotate(hour=TruncHour('viewed_date')).values('hour').annotate(
-            view=Count('*')).values('ad', 'hour', 'view').order_by('ad')
+            view=Count('*')).values('ad', 'hour', 'view', 'user_ip').order_by('ad')
+
+        difference = {}
+        clicks = Clicks.objects.all()
+        views = Views.objects.all()
+        for click in clicks:
+            ad_id = click.ad
+            difference[ad_id] = click.clicked_date - \
+                                     views.filter(ad_id=click.ad, user_ip=click.user_ip,
+                                                  viewed_date__lt=click.clicked_date) \
+                                         .order_by('-viewed_date').first().viewed_date
+        all_ads_time_difference_average = difference
 
         ctr_per_ad = {}
         for ad in Ad.objects.values('id'):
@@ -55,14 +64,14 @@ class ReportShow(TemplateView):
             for i in all_views:
                 for j in all_clicks:
                     if ad['id'] == i['ad']:
-                        readable_data = i['hour'].strftime("%Y/%m/%d, %H:%S")
-                        ctr[readable_data] = j['click'] / i['view']
+                        readable_date = i['hour'].strftime("%Y/%m/%d, %H:%S")
+                        ctr[readable_date] = j['click'] / i['view']
                         ctr_per_ad[i['ad']] = ctr
 
-        context['click2'] = all_clicks2
         context['click'] = all_clicks
         context['view'] = all_views
         context['ctr_per_ad'] = ctr_per_ad
+        context['all_ads_time_difference_average'] = all_ads_time_difference_average
 
         return context
 

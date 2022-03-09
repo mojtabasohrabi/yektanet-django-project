@@ -7,7 +7,26 @@
     <title>report</title>
 </head>
 <body>
-{{ click2 }}
+<div class="container" dir="ltr">
+    <div class="card mt-2 p-2">
+        <h5 class="card-title">
+            average of difference between viewed time and clicked time
+        </h5>
+        <div class="card-body">
+            <div class="row">
+                {% for x,y in all_ads_time_difference_average.items %}
+                <div class="card col-md-2 p-0 mx-2">
+                    <div class="card-body">
+                        <span>average of ad id {{ x.id }} ===> {{ y }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <div class="container" dir="ltr">
     <div class="card mt-2 p-2">
         <h5 class="card-title">
