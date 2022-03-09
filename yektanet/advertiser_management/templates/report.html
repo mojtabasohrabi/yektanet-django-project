@@ -10,14 +10,39 @@
 <div class="container" dir="ltr">
     <div class="card mt-2 p-2">
         <h5 class="card-title">
+            hourly CTR per ads
+        </h5>
+        <div class="card-body">
+            {% for x, y in ctr_per_ad.items %}
+            <div style="margin-top: 25px; margin-bottom: 10px">
+                CTR of ad id {{ x }}:
+            </div>
+
+            <div class="row">
+                {% for i,j in y.items %}
+                <div class="card col-md-2 p-0 mx-2">
+                    <div class="card-body">
+                        <span>{{ i }} : {{ j }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="container" dir="ltr">
+    <div class="card mt-2 p-2">
+        <h5 class="card-title">
             hourly clicks count per ads
         </h5>
         <div class="card-body">
-            <div class="">
+            <div class="row">
                 {% for i in click %}
                 <div class="card col-md-2 p-0 mx-2">
                     <div class="card-body">
-                        <span>ad id {{ i.ad }} : {{ i.hour }} ===> {{ i.click }}</span>
+                        <span>ad id {{ i.ad }} : {{ i.hour|date:'Y/m/d H:i' }} ===> {{ i.click }}</span>
                     </div>
                 </div>
                 {% endfor %}
@@ -30,12 +55,12 @@
             hourly views count per ads
         </h5>
         <div class="card-body">
-            <div class="">
+            <div class="row">
                 {% for i in view %}
                 <div class="card col-md-2 p-0 mx-2">
                     <div class="card-body">
                         <span>
-                            ad id {{ i.ad }} : {{ i.hour }} ===> {{ i.view }}
+                            ad id {{ i.ad }} : {{ i.hour|date:'Y/m/d H:i' }} ===> {{ i.view }}
                         </span>
                     </div>
                 </div>

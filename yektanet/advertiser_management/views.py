@@ -1,10 +1,12 @@
 from django.db.models import Count
-from django.db.models.functions import TruncHour
+from django.db.models.functions import TruncHour, TruncMinute
 from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
 from .forms import CrateAdForm
 from django.shortcuts import redirect
 from .models import Ad, Advertiser, Clicks, Views
+from datetime import datetime
+
 
 from django.views.generic.base import TemplateView
 
@@ -44,10 +46,19 @@ class ReportShow(TemplateView):
         all_views = Views.objects.annotate(hour=TruncHour('viewed_date')).values('hour').annotate(
             view=Count('*')).values('ad', 'hour', 'view').order_by('ad')
 
-        # all_views = Views.objects.values('ad').annotate(view=Count('*'))
+        ctr_per_ad = {}
+        for ad in Ad.objects.values('id'):
+            ctr = {}
+            for i in all_views:
+                for j in all_clicks:
+                    if ad['id'] == i['ad']:
+                        readable_data = i['hour'].strftime("%Y/%m/%d, %H:%S")
+                        ctr[readable_data] = j['click'] / i['view']
+                        ctr_per_ad[i['ad']] = ctr
 
         context['click'] = all_clicks
         context['view'] = all_views
+        context['ctr_per_ad'] = ctr_per_ad
 
         return context
 
