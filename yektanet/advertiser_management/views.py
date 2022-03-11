@@ -49,10 +49,10 @@ class ReportView(TemplateView):
         views = Views.objects.all()
         for click in clicks:
             ad_id = click.ad
-            difference[ad_id] = click.clicked_date - \
-                                views.filter(ad_id=click.ad, user_ip=click.user_ip,
+            last_viewed_date = views.filter(ad_id=click.ad, user_ip=click.user_ip,
                                              viewed_date__lt=click.clicked_date) \
-                                    .order_by('-viewed_date').first().viewed_date
+                                    .order_by('viewed_date').last().viewed_date
+            difference[ad_id] = click.clicked_date - last_viewed_date
         all_ads_time_difference_average = difference
 
         ctr_per_ad = {}
