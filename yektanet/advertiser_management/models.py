@@ -47,3 +47,17 @@ class Views(models.Model):
         ad = Ad.objects.get(id=ad_id)
         data_to_insert = Views(ad=ad, viewed_date=timezone.now(), user_ip=user_ip)
         data_to_insert.save(force_insert=True)
+
+
+class DailyModel(models.Model):
+    ad_id = models.IntegerField()
+    date = models.DateTimeField()
+    views_count = models.PositiveIntegerField()
+    clicks_count = models.PositiveIntegerField()
+
+
+class HourlyModel(models.Model):
+    ad_id = models.IntegerField()
+    date = models.DateTimeField()
+    views_count = models.PositiveIntegerField()
+    clicks_count = models.PositiveIntegerField()
