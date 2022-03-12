@@ -6,12 +6,15 @@ from django.views.generic.edit import CreateView
 from django.views.generic.base import RedirectView, TemplateView
 from django.shortcuts import redirect, get_object_or_404
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import authentication, permissions
 
-class AdsView(TemplateView):
+
+class AdsView(APIView):
     template_name = "ads.html"
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+    def get(self, request, format=None):
         all_advertisers = Advertiser.objects.values('id', 'name')
         ads_fields = Ad.objects.values('id', 'image', 'advertiser', 'title')
         all_ads = Ad.objects.all()
@@ -22,7 +25,7 @@ class AdsView(TemplateView):
             'ads': ads_fields,
         }
 
-        return context
+        return Response(context)
 
 
 class CreateAdFormView(CreateView):
@@ -32,11 +35,11 @@ class CreateAdFormView(CreateView):
     success_url = '/ads/'
 
 
-class ReportView(TemplateView):
+class ReportView(APIView):
     template_name = "report.html"
+    permission_classes = [permissions.IsAdminUser]
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+    def get(self, request, format=None):
 
         all_clicks = Clicks.objects.annotate(hour=TruncHour('clicked_date')).values('hour').annotate(
             click=Count('*')).values('ad', 'hour', 'click', 'user_ip').order_by('ad')
@@ -50,8 +53,8 @@ class ReportView(TemplateView):
         for click in clicks:
             ad_id = click.ad
             last_viewed_date = views.filter(ad_id=click.ad, user_ip=click.user_ip,
-                                             viewed_date__lt=click.clicked_date) \
-                                    .order_by('viewed_date').last().viewed_date
+                                            viewed_date__lt=click.clicked_date) \
+                .order_by('viewed_date').last().viewed_date
             difference[ad_id] = click.clicked_date - last_viewed_date
         all_ads_time_difference_average = difference
 
@@ -65,12 +68,20 @@ class ReportView(TemplateView):
                         ctr[readable_date] = j['click'] / i['view']
                         ctr_per_ad[i['ad']] = ctr
 
-        context['click'] = all_clicks
-        context['view'] = all_views
-        context['ctr_per_ad'] = ctr_per_ad
-        context['all_ads_time_difference_average'] = all_ads_time_difference_average
+        # context = {}
+        # context['click'] = all_clicks
+        # context['view'] = all_views
+        # context['ctr_per_ad'] = ctr_per_ad
+        # context['all_ads_time_difference_average'] = all_ads_time_difference_average
 
-        return context
+        context = {
+            'click': all_clicks,
+            'view': all_views,
+            'ctr_per_ad': ctr_per_ad,
+            # 'all_ads_time_difference_average': all_ads_time_difference_average,
+        }
+
+        return Response(context)
 
 
 # def create_ad_show(request):
