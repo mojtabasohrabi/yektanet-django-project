@@ -4,7 +4,7 @@ from .models import Ad, Advertiser, Clicks, Views
 from django.views.generic.edit import CreateView
 
 from django.views.generic.base import RedirectView, TemplateView
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 
 
 class AdsView(TemplateView):
@@ -85,14 +85,15 @@ class ReportView(TemplateView):
 #     return render(request, 'create_ad.html', {'form': form})
 
 
-def click_show(request, id):
-    Clicks.insert_click(id, request.ip)
-    return redirect(Ad.get_link(id))
+# def click_show(request, id):
+#     Clicks.insert_click(id, request.ip)
+#     return redirect(Ad.get_link(id))
 
 
-# class ClickView(RedirectView):
-#     pattern_name = 'click'
-#
-#     def get_redirect_url(self, *args, **kwargs):
-#         ad = get_object_or_404(Ad, id=kwargs['id'])
-#         return ad.link
+class ClickView(RedirectView):
+    pattern_name = 'click'
+
+    def get_redirect_url(self, *args, **kwargs):
+        Clicks.insert_click(kwargs['id'], self.request.ip)
+        ad = get_object_or_404(Ad, id=kwargs['id'])
+        return ad.link
