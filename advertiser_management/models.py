@@ -45,3 +45,11 @@ class View(models.Model):
         ad = Ad.objects.get(id=ad_id)
         data_to_insert = View(ad=ad, user_ip=user_ip)
         data_to_insert.save(force_insert=True)
+
+
+class ReportModel(models.Model):
+    ad = models.ForeignKey(Ad, on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)
+    views_count = models.PositiveIntegerField()
+    clicks_count = models.PositiveIntegerField()
+    type_of_report = models.CharField(max_length=10)

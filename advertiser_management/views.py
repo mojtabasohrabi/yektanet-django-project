@@ -7,6 +7,10 @@ from django.views.generic.edit import CreateView
 from django.views.generic.base import RedirectView, TemplateView
 from django.db.models import F
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import authentication, permissions
+
 
 class CreateAdFormView(CreateView):
     template_name = 'create_ad.html'
@@ -15,27 +19,26 @@ class CreateAdFormView(CreateView):
     success_url = '/ads/'
 
 
-class AdsView(TemplateView):
-    template_name = "ads.html"
+class AdsView(APIView):
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+    def get(self, request, format=None):
         all_advertisers = Advertiser.objects.values('id', 'name')
         ads_fields = Ad.objects.values('id', 'image', 'advertiser', 'title')
-        for ad in ads_fields.iterator():
-            View.insert_view(ad['id'], self.request.ip)
+        all_ads = Ad.objects.all()
+        for ad in all_ads.iterator():
+            View.insert_view(ad.id, self.request.ip)
+        context = {
+            'advertisers': all_advertisers,
+            'ads': ads_fields,
+        }
 
-        context['advertisers'] = all_advertisers
-        context['ads'] = ads_fields
-
-        return context
+        return Response(context)
 
 
-class ReportView(TemplateView):
-    template_name = "report.html"
+class ReportView(APIView):
+    permission_classes = [permissions.IsAdminUser]
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+    def get(self, request, format=None):
 
         all_clicks = Click.objects.annotate(hour=TruncHour('created')).values('ad', 'hour', 'user_ip').annotate(
             click=Count('*')).order_by('ad')
@@ -57,7 +60,6 @@ class ReportView(TemplateView):
                     F('created') - F('created')
                 )
             )
-
 
         all_ads_time_difference_average = last_viewed_date
 
@@ -81,13 +83,14 @@ class ReportView(TemplateView):
                     ctr[readable_date] = j['click'] / i['view']
                     ctr_per_ad[i['ad']] = ctr
 
-        context['click'] = all_clicks
-        context['view'] = all_views
-        context['ctr_per_ad'] = ctr_per_ad
-        context['all_ads_time_difference_average'] = all_ads_time_difference_average
-        context['test'] = all_ads_time_difference_average
+        context = {
+            'click': all_clicks,
+            'view': all_views,
+            'ctr_per_ad': ctr_per_ad,
+            # 'all_ads_time_difference_average': all_ads_time_difference_average,
+        }
 
-        return context
+        return Response(context)
 
 
 class ClickView(RedirectView):
