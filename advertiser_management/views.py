@@ -1,10 +1,11 @@
 import random
-from django.db.models import Count
+from django.db.models import Count, Avg
 from django.db.models.functions import TruncHour, TruncMinute
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Ad, Advertiser, Click, View
 from django.views.generic.edit import CreateView
 from django.views.generic.base import RedirectView, TemplateView
+from django.db.models import F
 
 
 class CreateAdFormView(CreateView):
@@ -45,15 +46,30 @@ class ReportView(TemplateView):
         difference = {}
         clicks = Click.objects.all()
         views = View.objects.all()
-
+        last_viewed_date = {}
         for click in clicks:
-            ad_id = click.ad
-            last_viewed_date = views.filter(ad_id=click.ad, user_ip=click.user_ip,
-                                            created__lt=click.created) \
-                .order_by('created').last().created
-            difference[ad_id] = click.created - last_viewed_date
+            # ad_id = click.ad
+            # last_viewed_date[click.id] = views.filter(ad=click.ad, user_ip=click.user_ip, created__lt=click.created).aggregate(average_difference=Avg(F(click.created) - F(click.created)))
+            # difference[ad_id] = click.created - last_viewed_date[click.id]
 
-        all_ads_time_difference_average = difference
+            last_viewed_date = View.objects.annotate(
+                _average_completionTime=Avg(
+                    F('created') - F('created')
+                )
+            )
+
+
+        all_ads_time_difference_average = last_viewed_date
+
+        test = {}
+        diff = {}
+        clicks_for_this_ad = Click.objects.all()
+        for click in clicks_for_this_ad:
+            views_for_this_ad = View.objects.filter(ad=click.ad_id).values()
+            for i in views_for_this_ad:
+                test[click.created] = (click.created - i['created'])
+
+            diff[click.ad_id] = test[click.created]
 
         ctr_per_ad = {}
 
@@ -69,6 +85,7 @@ class ReportView(TemplateView):
         context['view'] = all_views
         context['ctr_per_ad'] = ctr_per_ad
         context['all_ads_time_difference_average'] = all_ads_time_difference_average
+        context['test'] = all_ads_time_difference_average
 
         return context
 
