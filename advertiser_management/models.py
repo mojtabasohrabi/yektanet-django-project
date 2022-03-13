@@ -4,18 +4,16 @@ from django.utils import timezone
 
 
 class Advertiser(models.Model):
-    id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=200)
     clicks = models.PositiveIntegerField(default=0)
     views = models.PositiveIntegerField(default=0)
 
 
 class Ad(models.Model):
-    id = models.AutoField(primary_key=True)
     advertiser = models.ForeignKey(Advertiser, on_delete=models.CASCADE, related_name='ads')
     title = models.CharField(max_length=200)
-    image = models.ImageField(default='')
-    link = models.TextField()
+    image = models.ImageField(upload_to='ads_images')
+    link = models.CharField(max_length=255)
     approve = models.BooleanField(default=False)
 
     @staticmethod
@@ -25,25 +23,25 @@ class Ad(models.Model):
         return link
 
 
-class Clicks(models.Model):
-    id = models.AutoField(primary_key=True)
+class Click(models.Model):
     ad = models.ForeignKey(Ad, on_delete=models.CASCADE)
-    clicked_date = models.DateTimeField()
-    user_ip = models.CharField(max_length=15)
+    created = models.DateTimeField(auto_now_add=True)
+    user_ip = models.GenericIPAddressField(protocol='IPv4')
 
+    @staticmethod
     def insert_click(ad_id, user_ip):
         ad = Ad.objects.get(id=ad_id)
-        data_to_insert = Clicks(ad=ad, clicked_date=timezone.now(), user_ip=user_ip)
+        data_to_insert = Click(ad=ad, user_ip=user_ip)
         data_to_insert.save(force_insert=True)
 
 
-class Views(models.Model):
-    id = models.AutoField(primary_key=True)
+class View(models.Model):
     ad = models.ForeignKey(Ad, on_delete=models.CASCADE)
-    viewed_date = models.DateTimeField()
-    user_ip = models.CharField(max_length=15)
+    created = models.DateTimeField(auto_now_add=True)
+    user_ip = models.GenericIPAddressField(protocol='IPv4')
 
+    @staticmethod
     def insert_view(ad_id, user_ip):
         ad = Ad.objects.get(id=ad_id)
-        data_to_insert = Views(ad=ad, viewed_date=timezone.now(), user_ip=user_ip)
+        data_to_insert = View(ad=ad, user_ip=user_ip)
         data_to_insert.save(force_insert=True)
