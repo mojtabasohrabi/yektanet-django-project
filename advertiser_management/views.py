@@ -24,9 +24,6 @@ class AdsView(APIView):
     def get(self, request, format=None):
         all_advertisers = Advertiser.objects.values('id', 'name')
         ads_fields = Ad.objects.values('id', 'image', 'advertiser', 'title')
-        all_ads = Ad.objects.all()
-        for ad in all_ads.iterator():
-            View.insert_view(ad.id, self.request.ip)
         context = {
             'advertisers': all_advertisers,
             'ads': ads_fields,
@@ -46,32 +43,14 @@ class ReportView(APIView):
         all_views = View.objects.annotate(hour=TruncHour('created')).values('ad', 'hour', 'user_ip').annotate(
             view=Count('*')).order_by('ad')
 
-        difference = {}
         clicks = Click.objects.all()
         views = View.objects.all()
-        last_viewed_date = {}
+        time_difference = {}
         for click in clicks:
-            # ad_id = click.ad
-            # last_viewed_date[click.id] = views.filter(ad=click.ad, user_ip=click.user_ip, created__lt=click.created).aggregate(average_difference=Avg(F(click.created) - F(click.created)))
-            # difference[ad_id] = click.created - last_viewed_date[click.id]
-
-            last_viewed_date = View.objects.annotate(
-                _average_completionTime=Avg(
-                    F('created') - F('created')
-                )
-            )
-
-        all_ads_time_difference_average = last_viewed_date
-
-        test = {}
-        diff = {}
-        clicks_for_this_ad = Click.objects.all()
-        for click in clicks_for_this_ad:
-            views_for_this_ad = View.objects.filter(ad=click.ad_id).values()
-            for i in views_for_this_ad:
-                test[click.created] = (click.created - i['created'])
-
-            diff[click.ad_id] = test[click.created]
+            time_difference[click.ad_id] = click.created - views.filter(ad=click.ad, user_ip=click.user_ip,
+                                                                        created__lt=click.created) \
+                .order_by('-created').first().created
+        click_view_time_difference_average = time_difference
 
         ctr_per_ad = {}
 
@@ -87,7 +66,7 @@ class ReportView(APIView):
             'click': all_clicks,
             'view': all_views,
             'ctr_per_ad': ctr_per_ad,
-            # 'all_ads_time_difference_average': all_ads_time_difference_average,
+            'all_ads_time_difference_average': click_view_time_difference_average,
         }
 
         return Response(context)
@@ -97,6 +76,5 @@ class ClickView(RedirectView):
     pattern_name = 'click'
 
     def get_redirect_url(self, *args, **kwargs):
-        Click.insert_click(kwargs['id'], self.request.ip)
         ad = get_object_or_404(Ad, id=kwargs['id'])
         return ad.link
