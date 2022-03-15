@@ -1,4 +1,6 @@
 from advertiser_management.models import Ad, View, Click
+
+
 class GetUserIpMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
