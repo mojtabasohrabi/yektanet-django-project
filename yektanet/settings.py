@@ -42,7 +42,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     # custom middleware
-    'advertiser_management.middleware.user_ip_middleware.GetUserIpMiddleware',
+    'advertiser_management.middleware.ads_middleware.GetUserIpMiddleware',
 
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
